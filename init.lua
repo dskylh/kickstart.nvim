@@ -42,20 +42,26 @@ P.S. You can delete this when you're done too. It's your config now :)
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
+vim.opt.termguicolors = true
 vim.o.tabstop = 2
 vim.o.shiftwidth = 2
 vim.o.expandtab = true
 -- vim.o.indentexpr = true
 -- keymaps
-vim.keymap.set("n", "<C-s>", ":w<CR>")
-vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>")
-vim.keymap.set("n", "<S-l>", ":bn<CR>")
-vim.keymap.set("n", "<S-h>", ":bp<CR>")
-vim.keymap.set('n', '<C-h>', ':wincmd h<CR>', { noremap = true, silent = true })
-vim.keymap.set('n', '<C-j>', ':wincmd j<CR>', { noremap = true, silent = true })
-vim.keymap.set('n', '<C-k>', ':wincmd k<CR>', { noremap = true, silent = true })
-vim.keymap.set('n', '<C-l>', ':wincmd l<CR>', { noremap = true, silent = true })
-vim.keymap.set("n", "<leader>gg", ":LazyGit<CR>")
+local def_opt = { noremap = true, silent = true }
+vim.keymap.set("n", "<C-s>", ":w<CR>", def_opt)
+vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>", def_opt)
+vim.keymap.set("n", "<S-l>", ":bn<CR>", def_opt)
+vim.keymap.set("n", "<S-h>", ":bp<CR>", def_opt)
+vim.keymap.set('n', '<C-h>', ':wincmd h<CR>', def_opt)
+vim.keymap.set('n', '<C-j>', ':wincmd j<CR>', def_opt)
+vim.keymap.set('n', '<C-k>', ':wincmd k<CR>', def_opt)
+vim.keymap.set('n', '<C-l>', ':wincmd l<CR>', def_opt)
+vim.keymap.set("n", "<leader>gg", ":LazyGit<CR>", def_opt)
+vim.keymap.set("n", "<leader>x", ":bd<CR>", def_opt)
+vim.keymap.set("n", "<leader>q", ":TroubleToggle<CR>", def_opt)
+vim.keymap.set("n", "<leader>;", ":Dashboard<CR>", def_opt)
+
 
 -- Install package manager
 --    https://github.com/folke/lazy.nvim
@@ -139,27 +145,6 @@ require('lazy').setup({
       },
       on_attach = function(bufnr)
         vim.keymap.set('n', '<leader>hp', require('gitsigns').preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
-
-        -- don't override the built-in and fugitive keymaps
-        local gs = package.loaded.gitsigns
-        vim.keymap.set({ 'n', 'v' }, ']c', function()
-          if vim.wo.diff then
-            return ']c'
-          end
-          vim.schedule(function()
-            gs.next_hunk()
-          end)
-          return '<Ignore>'
-        end, { expr = true, buffer = bufnr, desc = 'Jump to next hunk' })
-        vim.keymap.set({ 'n', 'v' }, '[c', function()
-          if vim.wo.diff then
-            return '[c'
-          end
-          vim.schedule(function()
-            gs.prev_hunk()
-          end)
-          return '<Ignore>'
-        end, { expr = true, buffer = bufnr, desc = 'Jump to previous hunk' })
       end,
     },
   },
@@ -321,7 +306,14 @@ require('telescope').setup {
         ['<C-d>'] = false,
       },
     },
+    file_ignore_patterns = { ".git/[^h]" },
   },
+  pickers = {
+    find_files = {
+      hidden = true,
+    },
+  },
+
 }
 
 -- Enable telescope fzf native, if installed
@@ -455,13 +447,59 @@ end, 0)
 require('toggleterm').setup()
 require('leap').add_default_mappings()
 require('Comment').setup()
+require('bufferline').setup({
+  options = {
+    separator_style = "slant",
+    always_show_bufferline = true,
+    color_icons = true,
+  }
+})
+
+require('dashboard').setup({
+  theme = 'hyper',
+  config = {
+    week_header = {
+      enable = true,
+    },
+    shortcut = {
+      { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
+      {
+        icon = ' ',
+        icon_hl = '@variable',
+        desc = 'Files',
+        group = 'Label',
+        action = 'Telescope find_files',
+        key = 'f',
+      },
+      {
+        desc = ' dotfiles',
+        group = 'Number',
+        action = 'Telescope dotfiles',
+        key = 'd',
+      },
+    },
+  },
+})
 vim.g.lazygit_floating_window_winblend = 1
+--
+-- load refactoring Telescope extension
+require("telescope").load_extension("refactoring")
+
+vim.keymap.set(
+  { "n", "x" },
+  "<leader>rr",
+  function() require('telescope').extensions.refactoring.refactors() end
+)
+
+vim.keymap.set("n", "[c", function()
+  require("treesitter-context").go_to_context()
+end, { silent = true })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>ch', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+-- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
@@ -492,7 +530,7 @@ local on_attach = function(_, bufnr)
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  nmap('<S-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -629,6 +667,7 @@ cmp.setup {
     })
   }
 }
+
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
