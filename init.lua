@@ -42,11 +42,10 @@ P.S. You can delete this when you're done too. It's your config now :)
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-vim.o.tabstop = 4
-vim.o.softtabstop = 0
-vim.o.shiftwidth = 0
+vim.o.tabstop = 2
+vim.o.shiftwidth = 2
 vim.o.expandtab = true
-vim.o.indentexpr = true
+-- vim.o.indentexpr = true
 -- keymaps
 vim.keymap.set("n", "<C-s>", ":w<CR>")
 vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>")
@@ -56,6 +55,7 @@ vim.keymap.set('n', '<C-h>', ':wincmd h<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<C-j>', ':wincmd j<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<C-k>', ':wincmd k<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<C-l>', ':wincmd l<CR>', { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>gg", ":LazyGit<CR>")
 
 -- Install package manager
 --    https://github.com/folke/lazy.nvim
@@ -452,6 +452,11 @@ vim.defer_fn(function()
   }
 end, 0)
 
+require('toggleterm').setup()
+require('leap').add_default_mappings()
+require('Comment').setup()
+vim.g.lazygit_floating_window_winblend = 1
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
@@ -519,7 +524,7 @@ require('which-key').register {
 require('mason').setup()
 require('mason-lspconfig').setup()
 
--- Enable the following language servers
+--  Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
 --
 --  Add any additional override configuration in the following tables. They will be passed to
@@ -528,13 +533,9 @@ require('mason-lspconfig').setup()
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
 local servers = {
-  -- clangd = {},
-  -- gopls = {},
-  -- pyright = {},
-  -- rust_analyzer = {},
-  -- tsserver = {},
-  -- html = { filetypes = { 'html', 'twig', 'hbs'} },
-
+  pyright = {},
+  tsserver = {},
+  html = { filetypes = { 'html', 'twig', 'hbs' } },
   lua_ls = {
     Lua = {
       workspace = { checkThirdParty = false },
@@ -543,10 +544,10 @@ local servers = {
   },
 }
 
+
+
 -- Setup neovim lua configuration
 require('neodev').setup()
-require('toggleterm').setup()
-require('leap').add_default_mappings()
 -- vim.keymap.set("n", "<leader>t", ":ToggleTerm<CR>")
 
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
@@ -557,8 +558,9 @@ capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 local mason_lspconfig = require 'mason-lspconfig'
 
 mason_lspconfig.setup {
-  ensure_installed = vim.tbl_keys(servers),
+  ensure_installed = vim.tbl_keys(servers)
 }
+
 
 mason_lspconfig.setup_handlers {
   function(server_name)
@@ -575,6 +577,7 @@ mason_lspconfig.setup_handlers {
 -- See `:help cmp`
 local cmp = require 'cmp'
 local luasnip = require 'luasnip'
+local lspkind = require 'lspkind'
 require('luasnip.loaders.from_vscode').lazy_load()
 luasnip.config.setup {}
 
@@ -617,6 +620,14 @@ cmp.setup {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
   },
+  formatting = {
+    format = lspkind.cmp_format({
+      mode = 'symbol_text',  -- show only symbol annotations
+      maxwidth = 50,         -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+      ellipsis_char = '...', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+
+    })
+  }
 }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
