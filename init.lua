@@ -46,22 +46,12 @@ vim.opt.termguicolors = true
 vim.o.tabstop = 2
 vim.o.shiftwidth = 2
 vim.o.expandtab = true
+
+if vim.g.neovide then
+  vim.o.guifont = "FiraCode Nerd Font:h12"
+end
 -- vim.o.indentexpr = true
 -- keymaps
-local def_opt = { noremap = true, silent = true }
-vim.keymap.set("n", "<C-s>", ":w<CR>", def_opt)
-vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>", def_opt)
-vim.keymap.set("n", "<S-l>", ":bn<CR>", def_opt)
-vim.keymap.set("n", "<S-h>", ":bp<CR>", def_opt)
-vim.keymap.set('n', '<C-h>', ':wincmd h<CR>', def_opt)
-vim.keymap.set('n', '<C-j>', ':wincmd j<CR>', def_opt)
-vim.keymap.set('n', '<C-k>', ':wincmd k<CR>', def_opt)
-vim.keymap.set('n', '<C-l>', ':wincmd l<CR>', def_opt)
-vim.keymap.set("n", "<leader>gg", ":LazyGit<CR>", def_opt)
-vim.keymap.set("n", "<leader>x", ":bd<CR>", def_opt)
-vim.keymap.set("n", "<leader>q", ":TroubleToggle<CR>", def_opt)
-vim.keymap.set("n", "<leader>;", ":Dashboard<CR>", def_opt)
-
 
 -- Install package manager
 --    https://github.com/folke/lazy.nvim
@@ -179,6 +169,9 @@ require('lazy').setup({
     -- Enable `lukas-reineke/indent-blankline.nvim`
     -- See `:help ibl`
     main = 'ibl',
+    -- exlude = {
+    --   filetypes = { "dashboard" },
+    -- },
     opts = {},
   },
 
@@ -239,7 +232,6 @@ vim.o.hlsearch = false
 
 -- nvim.tree config
 vim.opt.termguicolors = true
-require("nvim-tree").setup()
 
 -- Make line numbers default
 vim.wo.number = true
@@ -306,7 +298,7 @@ require('telescope').setup {
         ['<C-d>'] = false,
       },
     },
-    file_ignore_patterns = { ".git/[^h]" },
+    file_ignore_patterns = { ".git/[^h]", "node_modules/[^h]" },
   },
   pickers = {
     find_files = {
@@ -315,6 +307,7 @@ require('telescope').setup {
   },
 
 }
+require("telescope").load_extension("refactoring")
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
@@ -444,56 +437,8 @@ vim.defer_fn(function()
   }
 end, 0)
 
-require('toggleterm').setup()
-require('leap').add_default_mappings()
-require('Comment').setup()
-require('bufferline').setup({
-  options = {
-    separator_style = "slant",
-    always_show_bufferline = true,
-    color_icons = true,
-  }
-})
-
-require('dashboard').setup({
-  theme = 'hyper',
-  config = {
-    week_header = {
-      enable = true,
-    },
-    shortcut = {
-      { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
-      {
-        icon = ' ',
-        icon_hl = '@variable',
-        desc = 'Files',
-        group = 'Label',
-        action = 'Telescope find_files',
-        key = 'f',
-      },
-      {
-        desc = ' dotfiles',
-        group = 'Number',
-        action = 'Telescope dotfiles',
-        key = 'd',
-      },
-    },
-  },
-})
-vim.g.lazygit_floating_window_winblend = 1
 --
 -- load refactoring Telescope extension
-require("telescope").load_extension("refactoring")
-
-vim.keymap.set(
-  { "n", "x" },
-  "<leader>rr",
-  function() require('telescope').extensions.refactoring.refactors() end
-)
-
-vim.keymap.set("n", "[c", function()
-  require("treesitter-context").go_to_context()
-end, { silent = true })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
@@ -530,7 +475,7 @@ local on_attach = function(_, bufnr)
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<S-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  -- nmap('<S-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -585,7 +530,9 @@ local servers = {
 
 
 -- Setup neovim lua configuration
-require('neodev').setup()
+require('neodev').setup({
+  library = { plugins = { "nvim-dap-ui" }, types = true }
+})
 -- vim.keymap.set("n", "<leader>t", ":ToggleTerm<CR>")
 
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
@@ -618,6 +565,8 @@ local luasnip = require 'luasnip'
 local lspkind = require 'lspkind'
 require('luasnip.loaders.from_vscode').lazy_load()
 luasnip.config.setup {}
+
+
 
 cmp.setup {
   snippet = {
@@ -657,6 +606,7 @@ cmp.setup {
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
+    { name = 'path' }
   },
   formatting = {
     format = lspkind.cmp_format({
@@ -667,6 +617,12 @@ cmp.setup {
     })
   }
 }
+
+require('custom.configs')
+require('custom.configs.keymap')
+
+vim.g.lazygit_floating_window_winblend = 1
+
 
 
 -- The line beneath this is called `modeline`. See `:help modeline`
