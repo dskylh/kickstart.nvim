@@ -43,9 +43,15 @@ P.S. You can delete this when you're done too. It's your config now :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.opt.termguicolors = true
+vim.o.expandtab = true
 vim.o.tabstop = 2
 vim.o.shiftwidth = 2
-vim.o.expandtab = true
+vim.o.smarttab = true
+vim.o.autoindent = true
+vim.o.shiftround = true
+vim.o.cursorline = true
+-- vim.o.shell = "zsh"
+vim.o.scrolloff = 10
 
 if vim.g.neovide then
   vim.o.guifont = "FiraCode Nerd Font:h12"
