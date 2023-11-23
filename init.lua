@@ -50,11 +50,17 @@ vim.o.smarttab = true
 vim.o.autoindent = true
 vim.o.shiftround = true
 vim.o.cursorline = true
+vim.o.relativenumber = true
 -- vim.o.shell = "zsh"
 vim.o.scrolloff = 10
 
 if vim.g.neovide then
   vim.o.guifont = "FiraCode Nerd Font:h12"
+  vim.g.neovide_transparency = 0.8
+  vim.g.neovide_hide_mouse_when_typing = true
+  vim.g.neovide_theme = "auto"
+  vim.g.neovide_cursor_antialiasing = true
+  vim.g.neovide_cursor_vfx_mode = "pixiedust"
 end
 -- vim.o.indentexpr = true
 -- keymaps
@@ -144,17 +150,6 @@ require('lazy').setup({
       end,
     },
   },
-
-  {
-    -- Theme inspired by Atom
-    'rose-pine/neovim',
-    name = 'rose-pine',
-    priority = 1000,
-    config = function()
-      vim.cmd.colorscheme 'rose-pine'
-    end,
-  },
-
   {
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
@@ -167,18 +162,6 @@ require('lazy').setup({
         section_separators = '',
       },
     },
-  },
-
-  {
-    -- Add indentation guides even on blank lines
-    'lukas-reineke/indent-blankline.nvim',
-    -- Enable `lukas-reineke/indent-blankline.nvim`
-    -- See `:help ibl`
-    main = 'ibl',
-    -- exlude = {
-    --   filetypes = { "dashboard" },
-    -- },
-    opts = {},
   },
 
   -- "gc" to comment visual regions/lines
@@ -309,6 +292,9 @@ require('telescope').setup {
     find_files = {
       hidden = true,
     },
+    colorscheme = {
+      enable_preview = true
+    }
   },
 
 }
@@ -372,6 +358,7 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc
 vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
+vim.keymap.set('n', '<leader>sc', require('telescope.builtin').colorscheme, { desc = '[S]earch [C]olorscheme' })
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
@@ -379,7 +366,9 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = {
+      'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', "markdown", "markdown_inline"
+    },
     sync_install = true,
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = true,
@@ -522,7 +511,7 @@ require('mason-lspconfig').setup()
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
 local servers = {
-  pyright = {},
+  ruff_lsp = {},
   tsserver = {},
   html = { filetypes = { 'html', 'twig', 'hbs' } },
   lua_ls = {
@@ -619,10 +608,11 @@ cmp.setup {
       mode = 'symbol_text',  -- show only symbol annotations
       maxwidth = 50,         -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
       ellipsis_char = '...', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
-
-    })
+    }),
+    format = require("tailwindcss-colorizer-cmp").formatter
   }
 }
+
 
 require('custom.configs')
 require('custom.configs.keymap')

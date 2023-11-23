@@ -1,6 +1,6 @@
-local null_ls = require("null-ls")
-null_ls.setup({
+local nls = require("null-ls")
+nls.setup({
   sources = {
-    require("null-ls").builtins.formatting.prettierd,
+    -- nls.builtins.formatting.prettierd,
   },
 })
